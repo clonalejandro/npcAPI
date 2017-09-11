@@ -27,7 +27,7 @@ import java.net.URL;
  * All rights reserved for clonalejandro ©npcAPI 2017 / 2018
  */
 
-public class Skins {
+class Skins {
 
 
     /** SMALL CONSTRUCTORS **/
@@ -35,35 +35,38 @@ public class Skins {
     private final String value;
     private final String signature;
 
-    public Skins(String value, String signature){
+    private Skins(String value, String signature){
         this.value = value;
-        this.signature = value;
+        this.signature = signature;
     }
 
 
     /** REST **/
 
     /**
+     * This method return to a Value of Request
      * @return
      */
-    public String getValue(){
+    String getValue(){
         return value;
     }
 
 
     /**
+     * This method return to a Signature of Request
      * @return
      */
-    public String getSignature(){
+    String getSignature(){
         return signature;
     }
 
 
     /**
+     * This method return to a Skin data from uuid
      * @param uuid
      * @return
      */
-    public static Skins getSkin(String uuid){
+    static Skins getSkin(String uuid){
         try {
             final URL url = getUrl(uuid);
             final HttpURLConnection req = (HttpURLConnection) url.openConnection();
@@ -101,6 +104,7 @@ public class Skins {
     /** OTHERS **/
 
     /**
+     * This method return a URL api from MojangAPI
      * @param uuid
      * @return
      * @throws IOException
