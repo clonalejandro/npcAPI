@@ -1,5 +1,7 @@
 package me.clonalejandro.npcAPI;
 
+import me.clonalejandro.npcAPI.utils.Manager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,7 +33,7 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onLoad(){
-        Bukkit.getConsoleSender().sendMessage("§b§lnpcAPI §floaded");
+        Bukkit.getConsoleSender().sendMessage(Manager.translator("&b&l" + Manager.NAME + Manager.SPACE + "&fPlugin loaded"));
     }
 
 
@@ -44,10 +46,10 @@ public class Main extends JavaPlugin {
             Events();
             Commands();
 
-            Bukkit.getConsoleSender().sendMessage("§a§lnpcAPI §fenabled");
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&a&l" + Manager.NAME + Manager.SPACE + "&fPlugin enabled"));
         } catch (Exception ex){
             ex.printStackTrace();
-            Bukkit.getConsoleSender().sendMessage("§c§lnpcAPI §fkilling process with errors");
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&c&l" + Manager.NAME + Manager.SPACE + "&fkilling process plugin with errors"));
             onDisable();
         }
     }
@@ -55,7 +57,15 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable(){
-
+        try {
+            Manager.getPM().disablePlugin(instance);
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&c&l" + Manager.NAME + Manager.SPACE + "&fPlugin disabled"));
+        } catch (Exception ex){
+            ex.printStackTrace();
+            Manager.getPM().disablePlugin(this);
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&4&l" + Manager.NAME + Manager.SPACE + "&fPlugin disabled with &4errors"));
+        }
+        instance = null;
     }
 
 
@@ -74,4 +84,6 @@ public class Main extends JavaPlugin {
     private void Config(){
         saveDefaultConfig();
     }
+
+
 }
