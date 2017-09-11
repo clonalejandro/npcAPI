@@ -1,6 +1,5 @@
 package me.clonalejandro.npcAPI.utils;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,16 +26,14 @@ import java.net.URL;
  * All rights reserved for clonalejandro ©npcAPI 2017 / 2018
  */
 
-public class Users {
+class Users {
 
 
     /** SMALL CONSTRUCTORS **/
 
-    private final String name;
     private final String uuid;
 
-    public Users(String name, String uuid){
-        this.name = name;
+    private Users(String uuid){
         this.uuid = uuid;
     }
 
@@ -44,26 +41,20 @@ public class Users {
     /** REST **/
 
     /**
+     * This method return a UUID
      * @return
      */
-    public String getName(){
-        return name;
-    }
-
-
-    /**
-     * @return
-     */
-    public String getUuid() {
+    String getUuid() {
         return uuid;
     }
 
 
     /**
+     * This method return to a UUID from Player name
      * @param name
      * @return
      */
-    public static Users getUUID(String name){
+    static Users getUUID(String name){
         try {
             final URL url = getUrl(name);
             final HttpURLConnection req = (HttpURLConnection) url.openConnection();
@@ -84,13 +75,10 @@ public class Users {
             reader.close();
             req.disconnect();
 
-            final JsonObject Reqname = object.getAsJsonObject("name");
             final JsonObject Reqid = object.getAsJsonObject("id");
-
-            final String aname = Reqname.getAsString();
             final String id = Reqid.getAsString();
 
-            return new Users(aname, id);
+            return new Users(id);
         } catch (Exception ex){
             ex.printStackTrace();
             return null;
@@ -101,6 +89,7 @@ public class Users {
     /** OTHERS **/
 
     /**
+     * This method return to a URL from MojangAPI
      * @param name
      * @return
      * @throws IOException
