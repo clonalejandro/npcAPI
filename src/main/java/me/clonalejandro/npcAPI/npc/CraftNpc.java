@@ -21,22 +21,18 @@ import java.lang.reflect.Method;
  * All rights reserved for clonalejandro ©npcAPI 2017 / 2018
  */
 
-public abstract class CraftNpc {
-
-
-    /** SMALL CONSTRUCTORS **/
-
-    //none...
+abstract class CraftNpc {
 
 
     /** REST **/
 
     /**
+     * This method set Value via reflection
      * @param object
      * @param name
      * @param value
      */
-    public void setVal(Object object, String name, Object value){
+    void setVal(Object object, String name, Object value){
         try {
             Field field = object.getClass().getDeclaredField(name);
             field.setAccessible(true);
@@ -47,11 +43,12 @@ public abstract class CraftNpc {
 
 
     /**
+     * This method get Value via reflection
      * @param object
      * @param name
      * @return
      */
-    public Object getVal(Object object, String name){
+    Object getVal(Object object, String name){
         try {
             Field field = object.getClass().getDeclaredField(name);
             field.setAccessible(true);
@@ -64,9 +61,10 @@ public abstract class CraftNpc {
 
 
     /**
+     * This method return a Main packet for spawn npc
      * @return
      */
-    public Class<?> Packet(){
+    Class<?> Packet(){
         try {
             Class packet = Manager.getNMSClass("PacketPlayOutNamedEntitySpawn");
             packet.newInstance();
@@ -79,54 +77,60 @@ public abstract class CraftNpc {
 
 
     /**
+     * This method operate a x coord
      * @param x
      * @return
      */
-    public Integer getX(Double x){
+    Integer getX(Double x){
         return (Integer) Helper(x * 32.0D);
     }
 
 
     /**
+     * This method operate a y coord
      * @param y
      * @return
      */
-    public Integer getY(Double y){
+    Integer getY(Double y){
         return (Integer) Helper(y * 32.0D);
     }
 
 
     /**
+     * This method operate a z coord
      * @param z
      * @return
      */
-    public Integer getZ(Double z){
+    Integer getZ(Double z){
         return (Integer) Helper(z * 32.0D);
     }
 
 
     /**
+     * This method operate a Yaw coord
      * @param yaw
      * @return
      */
-    public Byte getYaw(float yaw){
+    Byte getYaw(float yaw){
         return (byte) ((int) (yaw * 256.0F / 360.0F));
     }
 
 
     /**
+     * This method operate a Pitch coord
      * @param pitch
      * @return
      */
-    public Byte getPitch(float pitch){
+    Byte getPitch(float pitch){
         return (byte) ((int) (pitch * 256.0F / 360.0F));
     }
 
 
     /**
+     * This method return a Watcher Class
      * @return
      */
-    public Class<?> getWatcher(){
+    Class<?> getWatcher(){
         try {
             Class<?> clazz = DataWatcher();
 
@@ -143,9 +147,19 @@ public abstract class CraftNpc {
     }
 
 
+    /**
+     * This method return a ID
+     * @return
+     */
+    int getID(){
+        return (int) Math.ceil(Math.random() * 1000) + 2000;
+    }
+
+
     /** OTHERS **/
 
     /**
+     * This method return a class MathHelper
      * @return
      */
     private Class<?> MathHelper(){
@@ -154,6 +168,7 @@ public abstract class CraftNpc {
 
 
     /**
+     * This method invoke a Method for MathHelper
      * @param doub
      * @return
      */
@@ -169,6 +184,7 @@ public abstract class CraftNpc {
 
 
     /**
+     * This method return a DataWatcher Class
      * @return
      */
     private Class<?> DataWatcher() {
