@@ -37,12 +37,13 @@ public class Manager extends ReflectionAPI {
     private static Main instance = Main.instance;
 
     public final static String SPACE = " ";
-    public final static String NAME = "npcAPI";
+    public final static String NAME = "npcAPI>";
 
 
     /** REST **/
 
     /**
+     * This method return a PluginManager
      * @return
      */
     public static PluginManager getPM(){
@@ -51,6 +52,7 @@ public class Manager extends ReflectionAPI {
 
 
     /**
+     * This method return to a Config Manager
      * @return
      */
     public static FileConfiguration getConfig(){
@@ -59,6 +61,7 @@ public class Manager extends ReflectionAPI {
 
 
     /**
+     * This method translate Strings to colors
      * @param str
      * @return
      */
@@ -68,6 +71,7 @@ public class Manager extends ReflectionAPI {
 
 
     /**
+     * This method return a Main instance
      * @return
      */
     public static Main getInstance(){
@@ -76,6 +80,7 @@ public class Manager extends ReflectionAPI {
 
 
     /**
+     * This method return an GameProfile
      * @param name
      * @return
      */
@@ -92,7 +97,7 @@ public class Manager extends ReflectionAPI {
             try { return new GameProfile(UUID.randomUUID(), pname); }
             catch (NullPointerException ex){
                 ex.printStackTrace();
-                Bukkit.getConsoleSender().sendMessage("§4§lNPC-API> §fError in profiles");
+                Bukkit.getConsoleSender().sendMessage(translator("&4&lNPC-API> &fError in profiles"));
                 return null;
             }
         }
@@ -102,6 +107,7 @@ public class Manager extends ReflectionAPI {
     /** OTHERS **/
 
     /**
+     * This method return a Random ID
      * @return
      */
     private static String getRandomString(){
