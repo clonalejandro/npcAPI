@@ -1,17 +1,19 @@
 package me.clonalejandro.npcAPI.npc;
 
 import com.mojang.authlib.GameProfile;
-
+import me.clonalejandro.npcAPI.utils.JsonFixer;
 import me.clonalejandro.npcAPI.utils.Manager;
+
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.server.v1_8_R3.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +42,6 @@ public class EntityNpc extends CraftNpc implements Entity {
     private final int entityID;
     private final Location location;
     private final boolean hideTab;
-    private final String nameInTab;
     private final boolean rotation;
     private final GameProfile gameProfile;
 
@@ -50,7 +51,7 @@ public class EntityNpc extends CraftNpc implements Entity {
     public static List<EntityNpc> npcs = new ArrayList<>();
 
     private List<Player> rendered = new ArrayList<>();
-    private String tab;
+    private String nameInTab;
 
     /**
      * This method is a constructor class
@@ -64,7 +65,9 @@ public class EntityNpc extends CraftNpc implements Entity {
         this.location = location;
         this.rotation = rotation;
         this.hideTab = hideTab;
-        this.nameInTab = nameInTab;
+
+        if (nameInTab == null || nameInTab.equalsIgnoreCase("null") || nameInTab.equalsIgnoreCase(" "))
+            this.nameInTab = name;
 
         entityID = getID();
         gameProfile = Manager.getGameProfile(name);
@@ -111,12 +114,12 @@ public class EntityNpc extends CraftNpc implements Entity {
     @NPC
     public void spawn(final Player player, boolean rotation) {
         try {
-            final Class packet = Packet();
+            Object packet = Manager.getNMSClass("PacketPlayOutNamedEntitySpawn").newInstance();
 
             configure(packet);
             Manager.sendPacket(player, packet);
 
-            clearAI(player);
+            //clearAI(player);
 
             if (!hideTab) addTab(nameInTab);
 
@@ -251,13 +254,16 @@ public class EntityNpc extends CraftNpc implements Entity {
      * @param packet
      */
     @NPC
-    private void configure(Class packet){
+    private void configure(Object packet){
         final double x = location.getX(),
-                     y = location.getY(),
-                     z = location.getZ();
+                y = location.getY(),
+                z = location.getZ();
 
         final float yaw = location.getYaw(),
-                    pitch = location.getPitch();
+                pitch = location.getPitch();
+
+        final DataWatcher dataWatcher = new DataWatcher(null);
+        dataWatcher.a(10, (byte) 127);
 
         setVal(packet, "a", entityID);
         setVal(packet, "b", gameProfile.getId());//get profile ID
@@ -266,7 +272,7 @@ public class EntityNpc extends CraftNpc implements Entity {
         setVal(packet, "e", getZ(z));
         setVal(packet, "f", getYaw(yaw));
         setVal(packet, "g", getPitch(pitch));
-        setVal(packet, "i", getWatcher());
+        setVal(packet, "i", dataWatcher);
     }
 
 
@@ -275,34 +281,36 @@ public class EntityNpc extends CraftNpc implements Entity {
      * @param name
      */
     private void addTab(String name){
-        tab = Manager.translator(name);
+        if (nameInTab != null) {
+            nameInTab = Manager.translator(name);
 
-        final Class<?> packet = packetTab();
-        final Class<?> data = configurePacket(packet);
-        final Class<?> element = Manager.getNMSClass("PacketPlayOutPlayerInfo");
-        final Class[] elements = element.getClasses();
+            final Class<?> packet = packetTab();
+            final Class<?> data = configurePacket(packet);
+            final Class<?> element = Manager.getNMSClass("PacketPlayOutPlayerInfo");
+            final Class[] elements = element.getClasses();
 
-        Object[] obj = null;
-        Object Enum = null;
+            Object[] obj = null;
+            Object Enum = null;
 
-        for (Class<?> clazz : elements)
-            if (clazz.getName().equalsIgnoreCase("EnumPlayerInfoAction"))
-                obj = clazz.getEnumConstants();
+            for (Class<?> clazz : elements)
+                if (clazz.getName().equalsIgnoreCase("EnumPlayerInfoAction"))
+                    obj = clazz.getEnumConstants();
 
-        assert obj != null;
+            assert obj != null;
 
-        for (Object object : obj)
-            if (object.toString().equalsIgnoreCase("ADD_PLAYER"))
-                Enum = object;
+            for (Object object : obj)
+                if (object.toString().equalsIgnoreCase("ADD_PLAYER"))
+                    Enum = object;
 
-        assert Enum != null;
+            assert Enum != null;
 
-        @SuppressWarnings("unchecked")
-        List<Class<?>> players = (List<Class<?>>) getVal(packet, "b");
-        players.add(data);
+            @SuppressWarnings("unchecked")
+            List<Class<?>> players = (List<Class<?>>) getVal(packet, "b");
+            players.add(data);
 
-        setVal(packet, "a", Enum);
-        setVal(packet, "b", players);
+            setVal(packet, "a", Enum);
+            setVal(packet, "b", players);
+        }
     }
 
 
@@ -329,39 +337,46 @@ public class EntityNpc extends CraftNpc implements Entity {
      */
     private Class<?> configurePacket(Class<?> packet){
         try {
-            Class<?>[] Predata = packet.getClasses();
+            final Class<?> Data = packet.getDeclaredClasses()[1];
+            final Class IChatBaseComponent = Manager.getNMSClass("IChatBaseComponent");
+            Class enumSET;
 
-            Class<?> Data = null;
-            Class<?> Enum = Manager.getNMSClass("EnumGamemode");
-            Class<?> craftChatMessage = Manager.getBukkitNMSClass("CraftChatMessage");
-            Class<?> ChatBaseComponent;
+            if (!getVersion().equals("1.8"))
+                enumSET = Manager.getNMSClass("EnumGamemode");
+            else enumSET = Manager.getNMSClass("WorldSettings").getDeclaredClasses()[0];
 
-            Object[] vals = Enum.getEnumConstants();
-            Object val = null;
+            final Enum enumRES = Enum.valueOf(enumSET, "NOT_SET");
 
-            Method fromString = craftChatMessage.getDeclaredMethod("fromString", String.class);
-            Array array = (Array) fromString.invoke(craftChatMessage, tab);
-            ChatBaseComponent = (Class<?>) Array.get(array, 0);
+            final Object chatBaseComponent = ChatBaseComponent(ComponentSerializer.toString(
+                                                new TextComponent(
+                                                        Manager.translator(nameInTab)
+                                                )
+                                            ));
 
-            for (Object object : vals)
-                if (object.toString().equalsIgnoreCase("NOT_SET"))
-                    val = object;
 
-            for (Class<?> clazz : Predata)
-                if (clazz.getName().equalsIgnoreCase("PlayerInfoData"))
-                    Data = clazz;
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&a&l") + IChatBaseComponent.getClass());
+            Bukkit.getConsoleSender().sendMessage(Manager.translator("&c&l") + IChatBaseComponent);
 
-            assert Data != null;
-            assert val != null;
-
-            Data.getConstructor(GameProfile.class, int.class, Object.class, Class.class).
-                    newInstance(gameProfile, 1, val, ChatBaseComponent);
+            Data.getConstructor(GameProfile.class, int.class, enumSET, IChatBaseComponent).newInstance(gameProfile, 1, enumRES.getClass(), chatBaseComponent.getClass());
 
             return Data;
         } catch (Exception ex){
             ex.printStackTrace();
             return null;
         }
+    }
+
+
+    /**
+     * @param json
+     * @return
+     * @throws Exception
+     */
+    private Object ChatBaseComponent(String json) throws Exception{
+        Class<?> IChatBaseComponentClass = Manager.getNMSClass("IChatBaseComponent");
+        Class<?> ChatSerializerClass = IChatBaseComponentClass.getClasses()[0];
+
+        return ChatSerializerClass.getDeclaredMethod("a", String.class).invoke(null, json);
     }
 
 
