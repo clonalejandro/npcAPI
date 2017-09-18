@@ -34,8 +34,6 @@ public class Manager extends ReflectionAPI {
 
     /** SMALL CONSTRUCTORS **/
 
-    private static Main instance = Main.instance;
-
     public final static String SPACE = " ";
     public final static String NAME = "npcAPI>";
 
@@ -47,7 +45,7 @@ public class Manager extends ReflectionAPI {
      * @return
      */
     public static PluginManager getPM(){
-        return instance.getServer().getPluginManager();
+        return Main.instance.getServer().getPluginManager();
     }
 
 
@@ -56,7 +54,7 @@ public class Manager extends ReflectionAPI {
      * @return
      */
     public static FileConfiguration getConfig(){
-        return instance.getConfig();
+        return Main.instance.getConfig();
     }
 
 
@@ -75,7 +73,7 @@ public class Manager extends ReflectionAPI {
      * @return
      */
     public static Main getInstance(){
-        return instance;
+        return Main.instance;
     }
 
 
