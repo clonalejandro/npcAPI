@@ -1,6 +1,10 @@
 package me.clonalejandro.npcAPI.npc;
 
+import com.mojang.authlib.GameProfile;
 import me.clonalejandro.npcAPI.utils.Manager;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,7 +42,7 @@ abstract class CraftNpc {
             field.setAccessible(true);
             field.set(object, value);
         }
-        catch (Exception ex){ ex.printStackTrace(); }
+        catch (Exception ignored){}
     }
 
 
@@ -127,32 +131,42 @@ abstract class CraftNpc {
 
 
     /**
-     * This method return a Watcher Class
-     * @return
-     */
-    Class<?> getWatcher(){
-        try {
-            Class<?> clazz = DataWatcher();
-
-            assert clazz != null;
-
-            Method a = clazz.getDeclaredMethod("a", int.class, byte.class);
-            a.invoke(null, 10, (byte)127);
-
-            return clazz;
-        } catch (Exception ex){
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-
-    /**
      * This method return a ID
      * @return
      */
     int getID(){
         return (int) Math.ceil(Math.random() * 1000) + 2000;
+    }
+
+
+    /**
+     * This method return to a Server version
+     * @return
+     */
+    String getVersion(){
+        String version = "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + "." + "entity.CraftPlayer";
+        version = version.replace("org.bukkit.craftbukkit.v", "");
+        version = version.replace(".entity.CraftPlayer", "");
+        version = version.replace("_", ".");
+        version = version.replace("R", "");
+
+        assert version != null;
+
+        if (version.contains("1.8")) version = "1.8";
+        else if (version.contains("1.12")) version = "1.12";
+
+        return version;
+    }
+
+
+    /**
+     * This method return an PlayerEntity instanced
+     * @param location
+     * @param gameProfile
+     * @return
+     */
+    PlayerEntity playerEntity(Location location, GameProfile gameProfile){
+        return new PlayerEntity(getVersion(), location, gameProfile);
     }
 
 
@@ -177,22 +191,6 @@ abstract class CraftNpc {
             Method floor = MathHelper().getDeclaredMethod("floor", double.class);
             return floor.invoke(null, doub);
         } catch (Exception ex){
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-
-    /**
-     * This method return a DataWatcher Class
-     * @return
-     */
-    private Class<?> DataWatcher() {
-        try {
-            Class<?> watcher =  Manager.getNMSClass("DataWatcher");
-            watcher.getConstructor(Entity.class).newInstance((Object) null);
-            return watcher;
-        } catch (Exception ex) {
             ex.printStackTrace();
             return null;
         }
