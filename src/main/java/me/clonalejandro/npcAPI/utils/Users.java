@@ -75,8 +75,7 @@ class Users {
             reader.close();
             req.disconnect();
 
-            final JsonObject Reqid = object.getAsJsonObject("id");
-            final String id = Reqid.getAsString();
+            final String id = object.get("id").getAsString();
 
             return new Users(id);
         } catch (Exception ex){
