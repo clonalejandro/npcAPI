@@ -1,8 +1,13 @@
 package me.clonalejandro.npcAPI;
 
+import me.clonalejandro.npcAPI.npc.EntityNpc;
 import me.clonalejandro.npcAPI.utils.Manager;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -21,12 +26,13 @@ import org.bukkit.plugin.java.JavaPlugin;
  * All rights reserved for clonalejandro ©npcAPI 2017 / 2018
  */
 
-public class Main extends JavaPlugin {
+public class Main extends JavaPlugin implements Listener {
 
 
     /** SMALL CONSTRUCTORS **/
 
     public static Main instance;
+    private EntityNpc entityNpc;
 
 
     /** REST **/
@@ -72,7 +78,7 @@ public class Main extends JavaPlugin {
     /** OTHERS **/
 
     private void Events(){
-
+        Manager.getPM().registerEvents(instance, instance);
     }
 
 
@@ -83,6 +89,22 @@ public class Main extends JavaPlugin {
 
     private void Config(){
         saveDefaultConfig();
+    }
+
+
+    /** TEST **/
+
+    @EventHandler
+    public void onPlayerJoinEvent(PlayerJoinEvent e){
+        NpcApi.createNpc("pepe", e.getPlayer().getLocation(), instance);
+        entityNpc = NpcApi.getNpc("pepe");
+    }
+
+
+    @EventHandler
+    public void onPlayLeaveEvent(PlayerQuitEvent e){
+        if (entityNpc != null)
+            NpcApi.removeNpc(entityNpc);
     }
 
 
