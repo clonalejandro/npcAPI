@@ -146,4 +146,23 @@ public class NpcApi {
     }
 
 
+    /**
+     * This method get an Npc with name
+     * @param name
+     * @return
+     */
+    @Entity.NPC
+    public static EntityNpc getNpc(String name){
+        List<EntityNpc> list = EntityNpc.npcs;
+        EntityNpc result = null;
+
+        for (EntityNpc npc : list)
+            if (npc.getGameProfile().getName().equalsIgnoreCase(name))
+                result = npc;
+
+        if (result != null) return result;
+        else return null;
+    }
+
+
 }
