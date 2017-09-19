@@ -68,12 +68,9 @@ abstract class CraftNpc {
      * This method return a Main packet for spawn npc
      * @return
      */
-    Class<?> Packet(){
-        try {
-            Class packet = Manager.getNMSClass("PacketPlayOutNamedEntitySpawn");
-            packet.newInstance();
-            return packet;
-        } catch (Exception ex){
+    Object Packet(){
+        try { return Manager.getNMSClass("PacketPlayOutNamedEntitySpawn").newInstance(); }
+        catch (Exception ex){
             ex.printStackTrace();
             return null;
         }
@@ -149,8 +146,6 @@ abstract class CraftNpc {
         version = version.replace(".entity.CraftPlayer", "");
         version = version.replace("_", ".");
         version = version.replace("R", "");
-
-        assert version != null;
 
         if (version.contains("1.8")) version = "1.8";
         else if (version.contains("1.12")) version = "1.12";
