@@ -1,7 +1,6 @@
 package me.clonalejandro.npcAPI.npc;
 
 import com.mojang.authlib.GameProfile;
-import me.clonalejandro.npcAPI.utils.JsonFixer;
 import me.clonalejandro.npcAPI.utils.Manager;
 
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -114,7 +114,7 @@ public class EntityNpc extends CraftNpc implements Entity {
     @NPC
     public void spawn(final Player player, boolean rotation) {
         try {
-            Object packet = Manager.getNMSClass("PacketPlayOutNamedEntitySpawn").newInstance();
+            Object packet = Packet();
 
             configure(packet);
             Manager.sendPacket(player, packet);
@@ -279,13 +279,17 @@ public class EntityNpc extends CraftNpc implements Entity {
     /**
      * This method add to Tab an npc
      * @param name
+     * @throws RuntimeException
      */
-    private void addTab(String name){
+    private void addTab(String name) throws RuntimeException{
         if (nameInTab != null) {
             nameInTab = Manager.translator(name);
 
-            final Class<?> packet = packetTab();
-            final Class<?> data = configurePacket(packet);
+            final Object packet = packetTab();
+
+            if (packet == null) throw new RuntimeException();
+
+            final Object data = configurePacket(packet.getClass());
             final Class<?> element = Manager.getNMSClass("PacketPlayOutPlayerInfo");
             final Class[] elements = element.getClasses();
 
@@ -293,20 +297,19 @@ public class EntityNpc extends CraftNpc implements Entity {
             Object Enum = null;
 
             for (Class<?> clazz : elements)
-                if (clazz.getName().equalsIgnoreCase("EnumPlayerInfoAction"))
+                if (clazz.getSimpleName().equalsIgnoreCase("EnumPlayerInfoAction"))
                     obj = clazz.getEnumConstants();
 
-            assert obj != null;
+            if (obj == null) throw new RuntimeException();
 
             for (Object object : obj)
                 if (object.toString().equalsIgnoreCase("ADD_PLAYER"))
                     Enum = object;
 
-            assert Enum != null;
-
+            //TODO: replace Class<?> per Object
             @SuppressWarnings("unchecked")
             List<Class<?>> players = (List<Class<?>>) getVal(packet, "b");
-            players.add(data);
+            players.add((Class <?>) data);
 
             setVal(packet, "a", Enum);
             setVal(packet, "b", players);
@@ -318,11 +321,9 @@ public class EntityNpc extends CraftNpc implements Entity {
      * This method return to a packetTab
      * @return
      */
-    private Class<?> packetTab() {
+    private Object packetTab() {
         try {
-            Class clazz = Manager.getNMSClass("PacketPlayOutPlayerInfo");
-            clazz.newInstance();
-            return clazz;
+            return Manager.getNMSClass("PacketPlayOutPlayerInfo").newInstance();
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -335,11 +336,11 @@ public class EntityNpc extends CraftNpc implements Entity {
      * @param packet
      * @return
      */
-    private Class<?> configurePacket(Class<?> packet){
+    private Object configurePacket(Class<?> packet){
         try {
-            final Class<?> Data = packet.getDeclaredClasses()[1];
             final Class IChatBaseComponent = Manager.getNMSClass("IChatBaseComponent");
             Class enumSET;
+
 
             if (!getVersion().equals("1.8"))
                 enumSET = Manager.getNMSClass("EnumGamemode");
@@ -353,13 +354,9 @@ public class EntityNpc extends CraftNpc implements Entity {
                                                 )
                                             ));
 
-
-            Bukkit.getConsoleSender().sendMessage(Manager.translator("&a&l") + IChatBaseComponent.getClass());
-            Bukkit.getConsoleSender().sendMessage(Manager.translator("&c&l") + IChatBaseComponent);
-
-            Data.getConstructor(GameProfile.class, int.class, enumSET, IChatBaseComponent).newInstance(gameProfile, 1, enumRES.getClass(), chatBaseComponent.getClass());
-
-            return Data;
+            return packet.getDeclaredClasses()[1].
+                    getDeclaredConstructor(GameProfile.class, int.class, enumSET, IChatBaseComponent).
+                    newInstance(gameProfile, 1, enumRES, chatBaseComponent);
         } catch (Exception ex){
             ex.printStackTrace();
             return null;
@@ -438,15 +435,19 @@ public class EntityNpc extends CraftNpc implements Entity {
     /**
      * This method remove a npc From Tab List
      * @param player
+     * @throws RuntimeException
      */
-    private void removeTabList(Player player){
+    private void removeTabList(Player player) throws RuntimeException{
         try {
-            Class<?> packet = packetTab();
-            Class<?> Data = configurePacket(packet);
+            final Object packet = packetTab();
+
+            if (packet == null) throw new RuntimeException();
+
+            final Object Data = configurePacket(packet.getClass());
 
             @SuppressWarnings("unchecked")
             List<Class<?>> players = (List<Class<?>>) getVal(packet, "b");
-            players.add(Data);
+            players.add((Class<?>) Data);
 
             Class[] Enum = Manager.getNMSClass("PacketPlayOutPlayerInfo").getClasses();
             Class<?> rem = null;
@@ -455,7 +456,8 @@ public class EntityNpc extends CraftNpc implements Entity {
                 if (clazz.getName().equalsIgnoreCase("EnumPlayerInfoAction"))
                     rem = clazz;
 
-            assert rem != null;
+            if (rem == null) throw new RuntimeException();
+
             Object[] enums = rem.getEnumConstants();
             Object remove = null;
 
@@ -463,7 +465,6 @@ public class EntityNpc extends CraftNpc implements Entity {
                 if (object.toString().equalsIgnoreCase("REMOVE_PLAYER"))
                     remove = object;
 
-            assert remove != null;
             setVal(packet, "a",remove);
             setVal(packet, "b", players);
 
